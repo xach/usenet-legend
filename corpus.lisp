@@ -74,6 +74,7 @@
    :message-ids (make-string-table)
    :dates (make-adjustable-vector)
    :terms (make-adjustable-vector)
+   :message-id-article-id-map (make-string-table)
    :token-term-id-map (make-string-table)))
 
 (defmethod print-object ((corpus corpus) stream)
@@ -132,8 +133,15 @@
                        #'dates-pathname))
       (touch-file (funcall fun corpus)))))
 
-(defmethod initialize-instance :after ((corpus corpus) &key &allow-other-keys)
-  )
+(defmethod initialize-instance :around ((corpus corpus) &key
+                                        storage-pathname create
+                                        &allow-other-keys)
+  (setf corpus (call-next-method))
+  (unless (probe-file storage-pathname)
+    (if create
+        (initialize-corpus-pathname corpus)
+        (error "Corpus pathname ~S does not exist" storage-pathname)))
+  corpus)
 
 ;;; Stub articles can be quickly loaded without extra parsing
 
