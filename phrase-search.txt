@@ -1,0 +1,83 @@
+Phrase search works like this, conceptually:
+
+Each word in a document is called a term. Each distinct term is
+assigned a unique integer term id from a lexicon. For phrase search, a
+document is converted to a term id vector. For example:
+
+Document: "It was the best of times, it was the worst of times."
+
+    Term       Term ID
+    IT      -> 81
+    WAS     -> 42
+    THE     -> 99
+    BEST    -> 14
+    OF      -> 11
+    TIMES   -> 73
+    IT      -> 81
+    WAS     -> 42
+    THE     -> 99
+    WORST   -> 37
+    OF      -> 11
+    TIMES   -> 73
+
+The term id vector is:
+
+    #(81 42 99 14 11 73 81 42 99 37 11 73)
+
+This vector is used to generate the phrase search indexes. First, the
+term ids are sorted and duplicates are removed to produce the distinct
+term id (dtid) vector:
+
+    #(11 14 37 42 73 81 99)
+
+The dtid vector is then used to produce a distinct term id pointer
+(dtidp) vector. Each entry is the index in the original article where
+the distinct term first appears.
+
+    #(4 3 9 1 5 0 2)
+
+So to find the first occurrence of term id 42 ("WAS") in the article,
+first find the index of 42 in the dtid vector (3), then get the
+element at that index in the dtidp vector (1).
+
+A final vector is needed to quickly identify subsequent locations
+where a term id occurs in the document term vector. It is a term id
+pointer (tidp) vector. If an element at index N in the tidp vector is
+non-zero, it gives the index of the next occurrence of the term id
+that appears in the document term vector at index N.
+
+For our example document, the tidp vector is this:
+
+    #(6 7 8 0 10 11 0 0 0 0 0 0)
+
+That indicates that the term id at index 0 in the document (81) occurs
+next at index 6 in the document, the term at index 1 (42) occurs again
+at index 7, etc. The term id at index 4 (14) does not occur again, so
+the value at its index in the tidp vector is 0.
+
+So there are four vectors: tid holds the document term ids, dtid holds
+the sorted distinct term ids, dtidp holds pointers from dtid into tid,
+tidp holds pointers from terms to successors.
+
+With those vectors, phrase search can be done like this:
+
+  - Convert a search phrase to a term vector
+
+  - Look up the index of the first term id in the search term vector
+    in the dtid vector by bisection
+
+  - Use that to index into the dtidp vector and get the index of the
+    first occurrence of the term in the document term vector
+
+  - Check to see if the search term vector matches at that index
+
+  - If it does not match, get the successive index the first term from
+    tidp vector and keep trying until the successive index is 0
+
+Searching for a phrase in this way becomes a bunch of integer
+comparisons and vector dereferences.
+
+[Note: I need to read the literature on this stuff - it was just the
+first thing that sprang to mind.]
+
+
