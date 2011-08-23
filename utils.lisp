@@ -222,3 +222,9 @@
                    (save (logior #b10000000 (ldb (byte 6 6) char-code)))
                    (save (logior #b10000000 (ldb (byte 6 0) char-code)))))))
     (coerce output 'octet-vector)))
+
+(defun file-octets (file)
+  (with-binary-input (stream file)
+    (let ((buffer (make-octet-vector (file-length stream))))
+      (read-sequence buffer stream)
+      buffer)))
