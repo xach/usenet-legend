@@ -17,8 +17,13 @@ a header in a messaged named by HEADER (a keyword)."
     (write-string (complete-message article) stream))
   (probe-file file))
 
+(defun sanitize-pathname (name)
+  (remove-if (lambda (char) (position char "/*?")) name ))
+
+
 (defun split-pathname (article)
-  (make-pathname :name (string-trim "<>" (message-id article))
+  (make-pathname :name
+                 (sanitize-pathname (string-trim "<>" (message-id article)))
                  :type "txt"))
 
 (defun split-archive (predicate input-file output-directory)
