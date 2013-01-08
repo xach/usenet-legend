@@ -86,11 +86,16 @@
                    :corpus corpus)))
 
 (defun search-result-page (page-number per-page search-result)
+  "Return a vector of at most PER-PAGE stub article
+objects. PAGE-NUMBER numbering starts at 1. If no articles are
+available for a given page number, returns an empty vector. Intended
+to be useful for paginating results e.g. on a web page."
   (assert (and (plusp page-number) (plusp per-page)))
   (let* ((article-ids (article-ids search-result))
          (count (length article-ids))
          (end (* per-page page-number))
          (start (- end per-page)))
+    ;;; XXX should this signal an error instead?
     (if (<= count start)
         #()
         (let ((page (subseq article-ids start (min end count))))
