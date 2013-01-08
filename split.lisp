@@ -4,12 +4,15 @@
 
 (defun header-matcher (header-name pattern &rest scanner-args
                        &key &allow-other-keys)
+  "Create a function that returns true if PATTERN (a regexp) matches
+a header in a messaged named by HEADER (a keyword)."
   (let ((scanner (apply #'cl-ppcre:create-scanner pattern scanner-args)))
     (lambda (article)
       (let ((value (header header-name article)))
         (and value (cl-ppcre:scan scanner value) t)))))
 
 (defun save-article (article file)
+  "Write ARTICLE to FILE."
   (with-open-file (stream file :direction :output :if-exists :supersede)
     (write-string (complete-message article) stream))
   (probe-file file))
