@@ -96,3 +96,11 @@
                  (restore-record-id 'stub-article article-id
                                     (corpus search-result)))
                page)))))
+
+(defun search-in-corpus (search-string corpus)
+  (let ((query (make-search-query search-string corpus)))
+    (if query
+        (apply-search-query query)
+        (make-instance 'search-result
+                       :article-ids #()
+                       :corpus corpus))))
