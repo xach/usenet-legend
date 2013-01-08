@@ -41,6 +41,8 @@ article's message-id."
                 (let ((output (merge-pathnames (split-pathname article)
                                                output-directory)))
                   (ensure-directories-exist output)
+                  (write-char #\.)
+                  (finish-output)
                   (save-article article output)))))
           (when (null line)
             (return))
