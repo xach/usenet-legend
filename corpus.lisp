@@ -411,14 +411,6 @@ counts. Signal an error on any inconsistency."
     (make-bit-vector (article-count corpus))))
 
 
-(defun find-term-id (token corpus)
-  (let* ((cdb (corpus-relative-pathname "terms.cdb" corpus))
-         (key (string-octets (string-upcase token)))
-         (value (lookup key cdb)))
-    (when value
-      (let ((string (map 'string 'code-char value)))
-        (values (parse-integer string :radix 16))))))
-
 (defun make-term-cdb (corpus)
   (with-open-file (stream (term-pathname corpus))
     (with-output-to-cdb (cdb (term-cdb-pathname corpus)
@@ -428,4 +420,14 @@ counts. Signal an error on any inconsistency."
             for line = (read-line stream nil)
             while line do
             (add-record (string-octets line) id-key cdb)))))
+
+(defun find-term-id (token corpus)
+  (let ((cdb (term-cdb-pathname corpus)))
+    (unless (probe-file cdb)
+      (make-term-cdb corpus))
+    (let* ((key (string-octets (string-upcase token)))
+          (value (lookup key cdb)))
+      (when value
+        (let ((string (map 'string 'code-char value)))
+          (values (parse-integer string :radix 16)))))))
 
