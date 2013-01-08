@@ -70,17 +70,20 @@
     (format stream "~D result~:P"
             (length (article-ids object)))))
 
+(defun date-sorted-article-ids (ids corpus)
+  (let ((result (copy-seq ids))
+        (dates (dates corpus)))
+    (sort result #'<
+          :key (lambda (article-id)
+                 (aref dates article-id)))))
+
 (defun apply-search-query (search-query)
   (let* ((corpus (corpus search-query))
-         (result (search-term-results search-query corpus))
-         (dates (dates corpus)))
+         (result (search-term-results search-query corpus)))
     (setf result (filter-phrases search-query result corpus))
-    (let ((article-ids (sort result #'<
-                             :key (lambda (article-id)
-                                    (aref dates article-id)))))
-      (make-instance 'search-result
-                     :article-ids article-ids
-                     :corpus corpus))))
+    (make-instance 'search-result
+                   :article-ids (date-sorted-article-ids result corpus)
+                   :corpus corpus)))
 
 (defun search-result-page (page-number per-page search-result)
   (assert (and (plusp page-number) (plusp per-page)))
