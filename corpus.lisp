@@ -97,14 +97,6 @@
     (let ((data (make-array (/ (file-length stream) 4) :element-type 'u32)))
       (read-u32-vector data stream))))
 
-(defun load-corpus (storage-pathname)
-  (let* ((corpus (make-instance 'corpus :storage-pathname storage-pathname)))
-    (setf (article-count corpus)
-          (persistent-article-count corpus))
-    (setf (dates corpus)
-          (load-u32-records (dates-pathname corpus)))
-    corpus))
-
 (defun corpus-relative-pathname (pathname corpus)
   (merge-pathnames pathname (storage-pathname corpus)))
 
@@ -139,7 +131,14 @@
   (unless (probe-file storage-pathname)
     (if create
         (initialize-corpus-pathname corpus)
-        (error "Corpus pathname ~S does not exist" storage-pathname)))
+        ;;; XXX should just offer a restart to do it?
+        (error "Corpus storage pathname ~S does not exist ~
+                -- use :CREATE T to create"
+               storage-pathname)))
+  (setf (article-count corpus)
+        (persistent-article-count corpus))
+  (setf (dates corpus)
+        (load-u32-records (dates-pathname corpus)))
   corpus)
 
 ;;; Stub articles can be quickly loaded without extra parsing
