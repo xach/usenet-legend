@@ -61,9 +61,15 @@
   ((article-ids
     :initarg :article-ids
     :accessor article-ids)
+   (query
+    :initarg :query
+    :accessor query)
    (corpus
     :initarg :corpus
-    :accessor corpus)))
+    :accessor corpus))
+  (:documentation
+   "Represents the result of a search query. Should be created via
+   APPLY-SEARCH-QUERY, not directly via MAKE-INSTANCE."))
 
 (defmethod print-object ((object search-result) stream)
   (print-unreadable-object (object stream :type t)
@@ -83,6 +89,7 @@
     (setf result (filter-phrases search-query result corpus))
     (make-instance 'search-result
                    :article-ids (date-sorted-article-ids result corpus)
+                   :query search-query
                    :corpus corpus)))
 
 (defun search-result-page (page-number per-page search-result)

@@ -15,7 +15,12 @@ string aren't present in LEXICON, return NIL."
          (tokens search-string))))
 
 (defclass search-query ()
-  ((term-ids
+  ((search-string
+    :initarg :search-string
+    :reader search-string
+    :documentation "The original, unparsed string that produced the
+    query.")
+   (term-ids
     :initarg :term-ids
     :accessor term-ids
     :initform nil
@@ -36,6 +41,10 @@ string aren't present in LEXICON, return NIL."
    (corpus
     :initarg :corpus
     :accessor corpus)))
+
+(defmethod print-object ((search-query search-query) stream)
+  (print-unreadable-object (search-query stream :type t)
+    (format stream "~S" (search-string search-query))))
 
 (defun parse-search-string (string)
   (let ((type nil)
@@ -135,6 +144,7 @@ string aren't present in LEXICON, return NIL."
           ;; No results, or one of the terms is unknown
           (return))
         (make-instance 'search-query
+                       :search-string string
                        :term-ids term-ids
                        :excluded-term-ids (delete nil excluded-term-ids)
                        :phrases phrases
