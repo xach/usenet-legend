@@ -16,7 +16,12 @@
   ;; search
   (:export #:search-in-corpus
            #:search-result-page
-           #:article-ids))
+           #:article-ids)
+  ;; Articles
+  (:export #:article
+           #:message-id
+           #:header
+           #:date))
 
 (in-package #:usenet-legend)
 
