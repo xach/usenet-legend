@@ -404,28 +404,6 @@ counts. Signal an error on any inconsistency."
                             :corpus corpus)
              t)))
 
-(defgeneric first-article (object)
-  (:method ((corpus corpus))
-    (load-article-id 0 corpus)))
-
-(defgeneric last-article (object)
-  (:method ((corpus corpus))
-    (load-article-id (1- (article-count corpus))
-                     corpus)))
-
-(defgeneric next-article (article)
-  (:method (article)
-    (let ((corpus (corpus article))
-          (next-id (1+ (id article))))
-      (load-article-id next-id corpus))))
-
-(defgeneric previous-article (article)
-  (:method (article)
-    (let ((corpus (corpus article))
-          (previous-id (1- (id article))))
-      (load-article-id previous-id corpus))))
-
-
 (defun term-id-article-bit-vector (term-id corpus)
   (load-term-bit-vector term-id (tbv-pathname corpus)))
 
