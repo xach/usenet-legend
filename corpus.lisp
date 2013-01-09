@@ -79,10 +79,9 @@
 
 (defmethod print-object ((corpus corpus) stream)
   (print-unreadable-object (corpus stream :type t :identity t)
-    (format stream "~S (~D article~:P, ~D term~:P)"
+    (format stream "~S (~D article~:P)"
             (storage-pathname corpus)
-            (article-count corpus)
-            (length (terms corpus)))))
+            (article-count corpus))))
 
 (defgeneric date-order-article-ids (corpus)
   (:method (corpus)
