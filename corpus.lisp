@@ -437,3 +437,18 @@ counts. Signal an error on any inconsistency."
         (let ((string (map 'string 'code-char value)))
           (values (parse-integer string :radix 16)))))))
 
+;;;
+;;; A very high-level way to make a new corpus
+;;;
+
+(defun make-corpus-from-files (input-directory output-directory)
+  "Create a new corpus from the article files in INPUT-DIRECTORY, storing the corpus "
+  (when (probe-file output-directory)
+    (error "Output directory ~S already exists" output-directory))
+  (let ((corpus (make-instance 'corpus
+                               :create t
+                               :storage-pathname output-directory)))
+    (prog1 corpus
+      (dolist (file (directory (merge-pathnames "*.*" input-directory)))
+        (add-article file corpus))
+      (make-term-cdb corpus))))
