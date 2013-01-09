@@ -74,7 +74,10 @@
 (defmethod print-object ((object search-result) stream)
   (print-unreadable-object (object stream :type t)
     (format stream "~D result~:P"
-            (length (article-ids object)))))
+            (article-count object))))
+
+(defmethod article-count ((search-result search-result))
+  (length (article-ids search-result)))
 
 (defun date-sorted-article-ids (ids corpus)
   (let ((result (copy-seq ids))
