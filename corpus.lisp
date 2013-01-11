@@ -60,6 +60,14 @@
     :accessor dates
     :documentation "A vector of timestamps; not universal-times, just
     used for ordering purposes.")
+   (date-order-ids
+    :reader date-order-ids
+    :documentation "A vector of article IDs sorted in date
+    order. Populated lazily.")
+   (date-order-positions
+    :reader date-order-positions
+    :documentation "A vector, indexed by article ID, with the position
+    of that article ID in DATE-ORDER-IDs. Populated lazily.")
    (terms
     :initarg :terms
     :accessor terms
@@ -83,19 +91,34 @@
             (storage-pathname corpus)
             (article-count corpus))))
 
-(defgeneric date-order-article-ids (corpus)
-  (:method (corpus)
-    (let ((ids (make-array (article-count corpus)))
-          (dates (dates corpus)))
-      (loop for id from 0 below (length ids)
-            do (setf (aref ids id) id))
-      (sort ids #'< :key (lambda (id)
-                           (aref dates id))))))
 
-(defun load-u32-records (pathname)
-  (with-binary-input (stream pathname)
-    (let ((data (make-array (/ (file-length stream) 4) :element-type 'u32)))
-      (read-u32-vector data stream))))
+;;; Lazy-initializing the date-related ordering vectors
+
+(defun article-id-vector (corpus)
+  (let ((i -1))
+    (map-into (make-array (article-count corpus))
+              (lambda () (incf i)))))
+
+(defun initialize-date-vectors (corpus)
+  (let ((ids (article-id-vector corpus))
+        (positions (make-array (article-count corpus)))
+        (dates (dates corpus)))
+    (setf ids (sort ids #'< :key (lambda (id) (aref dates id))))
+    (loop for i from 0
+          for j across ids
+          do (setf (aref positions j) i))
+    (setf (slot-value corpus 'date-order-ids) ids
+          (slot-value corpus 'date-order-positions) positions)
+    (values ids positions)))
+
+(defmethod slot-unbound ((class t) (corpus corpus)
+                         (slot-name (eql 'date-order-ids)))
+  (nth-value 0 (initialize-date-vectors corpus)))
+
+(defmethod slot-unbound ((class t) (corpus corpus)
+                         (slot-name (eql 'date-order-positions)))
+  (nth-value 1 (initialize-date-vectors corpus)))
+
 
 (defun corpus-relative-pathname (pathname corpus)
   (merge-pathnames pathname (storage-pathname corpus)))
@@ -124,6 +147,12 @@
                        #'dates-pathname))
       (touch-file (funcall fun corpus)))))
 
+
+(defun load-u32-records (pathname)
+  (with-binary-input (stream pathname)
+    (let ((data (make-array (/ (file-length stream) 4) :element-type 'u32)))
+      (read-u32-vector data stream))))
+
 (defmethod initialize-instance :around ((corpus corpus) &key
                                         storage-pathname create
                                         &allow-other-keys)
@@ -140,6 +169,40 @@
   (setf (dates corpus)
         (load-u32-records (dates-pathname corpus)))
   corpus)
+
+
+;;; Loading date-relative articles
+
+(defgeneric first-article (corpus)
+  (:method ((corpus corpus))
+    (let ((id (aref (date-order-ids corpus) 0)))
+      (load-article-id id corpus))))
+
+(defgeneric last-article (corpus)
+  (:method ((corpus corpus))
+    (let ((id (aref (date-order-ids corpus) (1- (article-count corpus)))))
+      (load-article-id id corpus))))
+
+(defgeneric next-article (article)
+  (:method ((article article))
+    (let* ((corpus (corpus article))
+           (positions (date-order-positions corpus))
+           (ids (date-order-ids corpus)))
+      (let* ((position (aref positions (id article)))
+             (next-position (1+ position)))
+        (when (< next-position (length ids))
+          (load-article-id (aref ids next-position) corpus))))))
+
+(defgeneric previous-article (article)
+  (:method ((article article))
+    (let* ((corpus (corpus article))
+           (positions (date-order-positions corpus))
+           (ids (date-order-ids corpus)))
+      (let* ((position (aref positions (id article)))
+             (previous-position (1- position)))
+        (when (<= 0 previous-position)
+          (load-article-id (aref ids previous-position) corpus))))))
+
 
 ;;; Stub articles can be quickly loaded without extra parsing
 
@@ -372,6 +435,10 @@ counts. Signal an error on any inconsistency."
 (defmethod add-article ((article article) corpus)
   (change-class article 'corpus-article :corpus corpus)
   (add-article article corpus))
+
+(defmethod add-article :after (article corpus)
+  (slot-makunbound corpus 'date-order-ids)
+  (slot-makunbound corpus 'date-order-positions))
 
 (defgeneric tid-vector (object)
   (:method (object)
