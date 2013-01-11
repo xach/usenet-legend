@@ -54,7 +54,9 @@
    (message-id-article-id-map
     :initarg :message-id-article-id-map
     :accessor message-id-article-id-map
-    :documentation "A table mapping message-ids to article ids.")
+    :documentation "A table mapping message-ids to article ids. This
+    is used only when building up the corpus via ADD-ARTICLE, and is
+    not populated when restoring a persistent corpus.")
    (dates
     :initarg :dates
     :accessor dates
