@@ -12,6 +12,10 @@
   ;; Corpus-related stuff
   (:export #:corpus
            #:load-corpus
+           #:first-article
+           #:last-article
+           #:next-article
+           #:previous-article
            #:add-article)
   ;; search
   (:export #:search-in-corpus
