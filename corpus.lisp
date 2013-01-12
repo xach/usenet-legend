@@ -168,8 +168,10 @@
                storage-pathname)))
   (setf (article-count corpus)
         (persistent-article-count corpus))
-  (setf (dates corpus)
-        (load-u32-records (dates-pathname corpus)))
+  (unless create
+    ;; XXX make this adjustable too?
+    (setf (dates corpus)
+          (load-u32-records (dates-pathname corpus))))
   corpus)
 
 
