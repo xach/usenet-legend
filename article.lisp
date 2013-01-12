@@ -115,7 +115,8 @@ quoted-printable?"
 
 (defmethod print-object ((article article) stream)
   (print-unreadable-object (article stream :type t)
-    (format stream "~S ~S"
+    (format stream "~D. ~S ~S"
+            (id article)
             (header :date article)
             (header :subject article))))
 
