@@ -132,6 +132,14 @@ quoted-printable?"
   (:method ((article article))
     (header :subject article)))
 
+(defgeneric newsgroups (article)
+  (:method ((article article))
+    (header :newsgroups article)))
+
+(defgeneric from (article)
+  (:method ((article article))
+    (header :from article)))
+
 (defun initialize-body (article)
   (let* ((text (complete-message article))
          (end-of-header (search (format nil "~%~%") text))

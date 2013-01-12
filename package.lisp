@@ -21,6 +21,8 @@
   (:export #:article
            #:message-id
            #:header
+           #:newsgroups
+           #:from
            #:date))
 
 (in-package #:usenet-legend)
