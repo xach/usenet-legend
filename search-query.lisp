@@ -109,7 +109,7 @@ string aren't present in LEXICON, return NIL."
 (defun make-search-query (string lexicon)
   (block nil
     (labels ((get-term-id (word)
-               (find-term-id word lexicon))
+               (find-term-id (clean-token word) lexicon))
              (get-phrase-ids (string)
                (search-phrase-term-ids string lexicon)))
       (let (term-ids excluded-term-ids phrases excluded-phrases)
