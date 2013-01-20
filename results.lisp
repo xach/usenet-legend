@@ -121,7 +121,11 @@ to be useful for paginating results e.g. on a web page."
         (apply-search-query query)
         (make-instance 'search-result
                        :article-ids #()
+                       :query search-string
                        :corpus corpus))))
 
 (defmethod search-string ((search-result search-result))
   (search-string (query search-result)))
+
+(defmethod search-string ((string string))
+  string)
